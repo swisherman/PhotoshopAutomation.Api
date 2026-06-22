@@ -1,4 +1,4 @@
-﻿namespace UXPPluginDemoApi.Models
+﻿namespace PhotoshopAutomationApi.Models
 {
     using MongoDB.Bson;
     using MongoDB.Bson.Serialization.Attributes;

@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace UXPPluginDemoApi.Controllers
+namespace PhotoshopAutomationApi.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
     using MongoDB.Driver;
-    using UXPPluginDemoApi.Models;
-    using UXPPluginDemoApi.Services;
+    using PhotoshopAutomationApi.Models;
+    using PhotoshopAutomationApi.Services;
 
     [ApiController]
     [Route("psds")]

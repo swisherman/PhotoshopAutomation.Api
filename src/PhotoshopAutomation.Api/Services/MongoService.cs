@@ -1,7 +1,7 @@
-﻿using UXPPluginDemoApi.Models;
+﻿using PhotoshopAutomationApi.Models;
 using MongoDB.Driver;
 
-namespace UXPPluginDemoApi.Services
+namespace PhotoshopAutomationApi.Services
 {
    
 public class MongoService

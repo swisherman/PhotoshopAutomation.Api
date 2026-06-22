@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 
 
-namespace UXPPluginDemoApi.Models
+namespace PhotoshopAutomationApi.Models
 {
     public class PSDItem
     {

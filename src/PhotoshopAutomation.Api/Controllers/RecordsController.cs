@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using UXPPluginDemoApi.Models;
-using UXPPluginDemoApi.Services;
+using PhotoshopAutomationApi.Models;
+using PhotoshopAutomationApi.Services;
 
-namespace UXPPluginDemoApi.Controllers
+namespace PhotoshopAutomationApi.Controllers
 {
     [ApiController]
     [Route("records")]

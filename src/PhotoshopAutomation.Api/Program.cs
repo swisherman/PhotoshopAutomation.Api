@@ -1,4 +1,4 @@
-using UXPPluginDemoApi.Services;
+using PhotoshopAutomationApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

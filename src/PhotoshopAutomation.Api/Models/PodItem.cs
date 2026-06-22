@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace UXPPluginDemoApi.Models
+namespace PhotoshopAutomationApi.Models
 {
     [BsonIgnoreExtraElements]
     public class PodItem
