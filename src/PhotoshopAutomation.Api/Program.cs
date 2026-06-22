@@ -1,7 +1,8 @@
 using PhotoshopAutomationApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 // Add services to the container.
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddControllers()
@@ -13,6 +14,10 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
