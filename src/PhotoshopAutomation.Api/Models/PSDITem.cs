@@ -1,0 +1,28 @@
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+
+namespace UXPPluginDemoApi.Models
+{
+    public class PSDItem
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
+
+        [BsonElement("FilePathName")]
+        public string FilePathName { get; set; } = "";
+
+        [BsonElement("Description")]
+        public string Description { get; set; } = "";
+
+        [BsonElement("PixelWidth")]
+        public int PixelWidth { get; set; } = 0;
+
+        [BsonElement("PixelHeight")]
+        public int PixelHeight { get; set; } = 0;
+
+        [BsonElement("Created")]
+        public string? Created { get; set; } = null;
+    }
+}
