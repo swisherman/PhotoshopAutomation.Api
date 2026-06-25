@@ -1,0 +1,123 @@
+﻿# ==========================
+# Build Output
+# ==========================
+
+bin/
+obj/
+
+**/bin/
+**/obj/
+
+# ==========================
+# Visual Studio
+# ==========================
+
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider / ReSharper
+
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# VS Code
+
+.vscode/
+
+# ==========================
+# NuGet
+# ==========================
+
+*.nupkg
+packages/
+
+# ==========================
+# ASP.NET Core
+# ==========================
+
+appsettings.Development.json
+
+# User Secrets
+
+secrets.json
+
+# ==========================
+# Logs
+# ==========================
+
+logs/
+*.log
+
+# ==========================
+# Docker
+# ==========================
+
+.docker/
+docker-data/
+
+# ==========================
+# Test Results
+# ==========================
+
+TestResults/
+BenchmarkDotNet.Artifacts/
+
+# ==========================
+# Publish Output
+# ==========================
+
+publish/
+artifacts/
+
+# ==========================
+# OS Files
+# ==========================
+
+Thumbs.db
+Desktop.ini
+
+# macOS
+
+.DS_Store
+
+# ==========================
+# Generated Documentation
+# ==========================
+
+docs/generated/
+
+# ==========================
+# Temporary Files
+# ==========================
+
+*.tmp
+*.temp
+*.bak
+
+# ==========================
+# Local Mongo Data
+# ==========================
+
+mongo-data/
+mongo-data-for-uxp/
+
+# ==========================
+# Portfolio Project Specific
+# ==========================
+
+.env
+.env.*
+
+*.local.json
+
+# Do not commit exported builds
+builds/
+data/
+
+# Do not commit customer assets
+uploads/
+customer-assets/
