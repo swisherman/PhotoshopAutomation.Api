@@ -136,6 +136,19 @@ namespace PhotoshopAutomationApi.Controllers
 
             return Ok(batches);
         }
+        [HttpGet("batches/{batchId}")]
+        public async Task<IActionResult> GetBatchItems(string batchId, [FromQuery] string? productType = null)
+        {
+            var records = await _podCollection.GetAllRecordsAsync();
+
+            var items = records
+                .Where(x => x.BatchId == batchId)
+                .Where(x => string.IsNullOrWhiteSpace(productType) || x.ProductType == productType)
+                .OrderBy(x => x.Phrase)
+                .ToList();
+
+            return Ok(items);
+        }
 
 
     }
