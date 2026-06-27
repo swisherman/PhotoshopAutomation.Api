@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
+using MockupWorkflow.Shared.Models;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using PhotoshopAutomationApi.Models;
 using PhotoshopAutomationApi.Services;
-using MockupWorkflow.Shared.Models;
+using System.Net.Http.Json;
+using static System.Net.WebRequestMethods;
 
 namespace PhotoshopAutomationApi.Controllers
 {
@@ -18,7 +20,6 @@ namespace PhotoshopAutomationApi.Controllers
            _mongo = mongo;
 
             _podCollection = podCollection;
-            var records = _podCollection.GetAllRecordsAsync().Result;
         }
 
         [HttpGet]
@@ -54,38 +55,43 @@ namespace PhotoshopAutomationApi.Controllers
 
             return Ok(new { processed = true });
         }
-        
+      
+
+
         [HttpPost("import")]
         public async Task<IActionResult> Import([FromBody] List<PodItem> items)
         {
             if (items == null || items.Count == 0)
                 return BadRequest("No records supplied.");
 
+            var existingRecords = await _podCollection.GetAllRecordsAsync();
+
+            var existingSourceKeys = existingRecords
+                .Where(x => !string.IsNullOrWhiteSpace(x.SourceKey))
+                .Select(x => x.SourceKey)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             var inserted = 0;
             var alreadyPresent = 0;
-            var exist= false;
+
             foreach (var item in items)
             {
-                             
-                var records = await _podCollection.GetAllRecordsAsync();
-                foreach(var record in records)
-                { 
-                    if(record.SourceKey == item.SourceKey)
-                    {
-                        alreadyPresent++;
-                        exist = true;
-                        continue;
-                    }
-                }
-                if(exist==false)
-                {
-                    item.ProcessingStatus = "ready";
-                    item.MockupProcessed = false;
+                if (string.IsNullOrWhiteSpace(item.SourceKey))
+                    continue;
 
-                    await _podCollection.AddDocument(item);
-                    inserted++;
+                if (existingSourceKeys.Contains(item.SourceKey))
+                {
+                    alreadyPresent++;
+                    continue;
                 }
-                
+
+                item.ProcessingStatus = "ready";
+                item.MockupProcessed = false;
+
+                await _podCollection.AddDocument(item);
+
+                existingSourceKeys.Add(item.SourceKey);
+                inserted++;
             }
 
             return Ok(new
@@ -95,5 +101,42 @@ namespace PhotoshopAutomationApi.Controllers
                 alreadyPresent
             });
         }
+
+
+
+
+
+
+
+
+
+
+        [HttpGet("batches")]
+        public async Task<IActionResult> GetBatches()
+        {
+            var records = await _podCollection.GetAllRecordsAsync();
+
+            var batches = records
+                .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
+                .GroupBy(x => new
+                {
+                    x.BatchId,
+                    x.ProductType
+                })
+                .Select(g => new BatchSummary
+                {
+                    BatchId = g.Key.BatchId,
+                    ProductType = g.Key.ProductType,
+                    ItemCount = g.Count(),
+                    MockupProcessedCount = g.Count(x => x.MockupProcessed),
+                    LastModified = g.Max(x => x.LastModified)
+                })
+                .OrderByDescending(x => x.LastModified)
+                .ToList();
+
+            return Ok(batches);
+        }
+
+
     }
 }

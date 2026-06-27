@@ -6,6 +6,13 @@ builder.Services.AddSwaggerGen();
 // Add services to the container.
 builder.Services.AddSingleton<PodCollection>();
 builder.Services.AddSingleton<MongoService>();
+
+builder.Services.Configure<MongoSettings>(
+    builder.Configuration.GetSection(MongoSettings.SectionName));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<
+        Microsoft.Extensions.Options.IOptions<MongoSettings>>().Value);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

@@ -22,8 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\MockupWorkflow.Shared\MockupWorkflow.Shared\MockupWorkflow.Shared.csproj" />
-    <ProjectReference Include="..\..\..\MockupWorkflow.Shared\MockupWorkflow.Shared\src\MockupWorkflow.Shared\MockupWorkflow.Shared.csproj" />
     <ProjectReference Include="..\..\..\MockupWorkflow.Shared\src\MockupWorkflow.Shared\MockupWorkflow.Shared.csproj" />
   </ItemGroup>
 
