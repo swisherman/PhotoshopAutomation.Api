@@ -2,6 +2,7 @@
 using MockupWorkflow.Shared.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using PhotoshopAutomation.Api.Services;
 using PhotoshopAutomationApi.Models;
 using PhotoshopAutomationApi.Services;
 using System.Net.Http.Json;
@@ -15,11 +16,15 @@ namespace PhotoshopAutomationApi.Controllers
     {
         private readonly MongoService _mongo;
         private readonly PodCollection _podCollection;
-        public RecordsController(MongoService mongo, PodCollection podCollection)
+        private readonly IMockupGenerationService _mockupGenerationService;
+        public RecordsController(
+     MongoService mongo,
+     PodCollection podCollection,
+     IMockupGenerationService mockupGenerationService)
         {
-           _mongo = mongo;
-
+            _mongo = mongo;
             _podCollection = podCollection;
+            _mockupGenerationService = mockupGenerationService;
         }
 
         [HttpGet]
@@ -150,6 +155,40 @@ namespace PhotoshopAutomationApi.Controllers
             return Ok(items);
         }
 
+        [HttpPost("batches/{batchId}/process-mockups")]
+        public async Task<IActionResult> ProcessBatchMockups(
+    string batchId,
+    [FromQuery] string? productType = null)
+        {
+            var processed = await _mockupGenerationService.GenerateBatchAsync(batchId, productType);
 
+            if (processed == 0)
+                return NotFound($"No items found for batch {batchId}.");
+
+            return Ok(new
+            {
+                batchId,
+                productType,
+                processed
+            });
+        }
+        [HttpGet("batches/{batchId}/ready")]
+        public async Task<IActionResult> GetReadyRecordsForBatch(
+    string batchId,
+    [FromQuery] string? productType = null)
+        {
+            var records = await _podCollection.GetAllRecordsAsync();
+
+            var ready = records
+                .Where(x => x.BatchId == batchId)
+                .Where(x => string.IsNullOrWhiteSpace(productType) || x.ProductType == productType)
+                .Where(x => !x.MockupProcessed)
+                .Where(x => string.Equals(x.ProcessingStatus, "ready", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Phrase)
+                .ToList();
+
+            return Ok(ready);
+        }
     }
 }
