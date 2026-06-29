@@ -22,10 +22,10 @@ public class MockupGenerationService : IMockupGenerationService
 
         foreach (var item in items)
         {
-            await _podCollection.UpdateDocument(item, nameof(PodItem.ProcessingStatus), "processed");
-            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupProcessed), true);
-            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupProcessedAt), DateTime.UtcNow);
-            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupOutputFolder), item.MockupFolderPath);
+            await _podCollection.UpdateDocument(item, nameof(PodItem.ProcessingStatus), "processing");
+            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupProcessed), false);
+            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupProcessedAt), null);
+            await _podCollection.UpdateDocument(item, nameof(PodItem.MockupOutputFolder), "");
         }
 
         return items.Count;
