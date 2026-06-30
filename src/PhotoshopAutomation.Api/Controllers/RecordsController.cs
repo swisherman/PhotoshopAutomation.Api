@@ -190,5 +190,28 @@ namespace PhotoshopAutomationApi.Controllers
 
             return Ok(ready);
         }
+        [HttpGet("batches/pending")]
+        public async Task<IActionResult> GetPendingBatches()
+        {
+            var records = await _podCollection.GetAllRecordsAsync();
+
+            var batches = records
+                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
+                .Where(x => !x.MockupProcessed)
+                .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
+                .GroupBy(x => new { x.BatchId, x.ProductType })
+                .Select(g => new BatchSummary
+                {
+                    BatchId = g.Key.BatchId,
+                    ProductType = g.Key.ProductType,
+                    ItemCount = g.Count(),
+                    MockupProcessedCount = g.Count(x => x.MockupProcessed),
+                    LastModified = g.Max(x => x.LastModified)
+                })
+                .OrderByDescending(x => x.LastModified)
+                .ToList();
+
+            return Ok(batches);
+        }
     }
 }
