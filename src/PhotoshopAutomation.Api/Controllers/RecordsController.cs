@@ -141,13 +141,13 @@ namespace PhotoshopAutomationApi.Controllers
 
             return Ok(batches);
         }
-        [HttpGet("batches/{batchId}")]
-        public async Task<IActionResult> GetBatchItems(string batchId, [FromQuery] string? productType = null)
+        [HttpGet("batches/{batchId:long}")]
+        public async Task<IActionResult> GetBatchItems(long batchId, [FromQuery] string? productType = null)
         {
             var records = await _podCollection.GetAllRecordsAsync();
-
+            var batchIdText = batchId.ToString();
             var items = records
-                .Where(x => x.BatchId == batchId)
+                .Where(x => x.BatchId == batchIdText)
                 .Where(x => string.IsNullOrWhiteSpace(productType) || x.ProductType == productType)
                 .OrderBy(x => x.Phrase)
                 .ToList();
@@ -157,10 +157,11 @@ namespace PhotoshopAutomationApi.Controllers
 
         [HttpPost("batches/{batchId}/process-mockups")]
         public async Task<IActionResult> ProcessBatchMockups(
-    string batchId,
+    long batchId,
     [FromQuery] string? productType = null)
         {
-            var processed = await _mockupGenerationService.GenerateBatchAsync(batchId, productType);
+            var batchIdText = batchId.ToString();
+            var processed = await _mockupGenerationService.GenerateBatchAsync(batchIdText, productType);
 
             if (processed == 0)
                 return NotFound($"No items found for batch {batchId}.");
@@ -172,21 +173,42 @@ namespace PhotoshopAutomationApi.Controllers
                 processed
             });
         }
-        [HttpGet("batches/{batchId}/ready")]
+        [HttpGet("batches/{batchId:long}/ready")]
         public async Task<IActionResult> GetReadyRecordsForBatch(
-    string batchId,
+    long batchId,
     [FromQuery] string? productType = null)
         {
+            var batchIdText = batchId.ToString();
             var records = await _podCollection.GetAllRecordsAsync();
 
             var ready = records
-                .Where(x => x.BatchId == batchId)
+                .Where(x => x.BatchId == batchIdText)
                 .Where(x => string.IsNullOrWhiteSpace(productType) || x.ProductType == productType)
                 .Where(x => !x.MockupProcessed)
                 .Where(x => string.Equals(x.ProcessingStatus, "ready", StringComparison.OrdinalIgnoreCase)
                          || string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(x => x.Phrase)
                 .ToList();
+            
+                foreach (var record in ready)
+                {
+                if (string.IsNullOrWhiteSpace(record.InputFolderPath))
+                    continue;
+
+                if (!Directory.Exists(record.InputFolderPath))
+                    continue;
+
+                var imageFile = Directory
+                    .EnumerateFiles(record.InputFolderPath, "*.png")
+                    .OrderBy(Path.GetFileName)
+                    .FirstOrDefault();
+
+                if (imageFile != null)
+                    {
+                        record.Filename = Path.GetFileName(imageFile);
+                    }
+                   
+                }
 
             return Ok(ready);
         }
@@ -196,7 +218,7 @@ namespace PhotoshopAutomationApi.Controllers
             var records = await _podCollection.GetAllRecordsAsync();
 
             var batches = records
-                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(x.ProcessingStatus, "ready", StringComparison.OrdinalIgnoreCase))
                 .Where(x => !x.MockupProcessed)
                 .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
                 .GroupBy(x => new { x.BatchId, x.ProductType })
@@ -212,6 +234,32 @@ namespace PhotoshopAutomationApi.Controllers
                 .ToList();
 
             return Ok(batches);
+        }
+        [HttpPost("{id}/mockup-complete")]
+        public async Task<IActionResult> MarkMockupComplete(string id)
+        {
+            if (!ObjectId.TryParse(id, out var objectId))
+            {
+                return BadRequest($"Invalid MongoDB ObjectId: {id}");
+            }
+
+            var update = Builders<PodItem>.Update
+                .Set(x => x.MockupProcessed, true)
+                .Set(x => x.LastModified, DateTime.UtcNow);
+
+            var updated = await _podCollection.UpdateOneAsync(
+                x => x.Id == objectId,
+                update
+            );
+
+            if (!updated)
+                return NotFound();
+
+            return Ok(new
+            {
+                Id = id,
+                MockupProcessed = true
+            });
         }
     }
 }

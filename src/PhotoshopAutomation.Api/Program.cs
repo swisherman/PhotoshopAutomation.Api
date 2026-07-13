@@ -22,11 +22,20 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUxP", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseCors("AllowUxP");
 
 
 // Configure the HTTP request pipeline.
