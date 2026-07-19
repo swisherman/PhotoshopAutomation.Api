@@ -39,28 +39,29 @@ namespace PhotoshopAutomationApi.Controllers
         {
 
             var records = await _podCollection.GetAllRecordsAsync();//.FindAsync(x => x.MockupProcessed != true && x.ProcessingStatus != "processed");
-            records = records.Where(x => x.MockupProcessed != true && x.ProcessingStatus != "processed").ToList();  
+            records = records.Where(x => x.MockupProcessed != true && x.ProcessingStatus != "processed").ToList();
             return Ok(records);
         }
 
         [HttpPatch("{id}/processed")]
         public async Task<IActionResult> MarkProcessed(ObjectId id)
         {
-            
+
             var records = await _podCollection.GetAllRecordsAsync();
-            foreach (var record in records) {
+            foreach (var record in records)
+            {
                 if (record.Id == id)
                 {
                     record.MockupProcessed = true;
                     record.ProcessingStatus = "processed";
                 }
             }
-            if (records.Count== 0)
+            if (records.Count == 0)
                 return NotFound();
 
             return Ok(new { processed = true });
         }
-      
+
 
 
         [HttpPost("import")]
@@ -189,9 +190,10 @@ namespace PhotoshopAutomationApi.Controllers
                          || string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(x => x.Phrase)
                 .ToList();
-            
-                foreach (var record in ready)
-                {
+
+            foreach (var record in ready)
+            {
+                record.IdString = record.Id.ToString();
                 if (string.IsNullOrWhiteSpace(record.InputFolderPath))
                     continue;
 
@@ -204,11 +206,11 @@ namespace PhotoshopAutomationApi.Controllers
                     .FirstOrDefault();
 
                 if (imageFile != null)
-                    {
-                        record.Filename = Path.GetFileName(imageFile);
-                    }
-                   
+                {
+                    record.Filename = Path.GetFileName(imageFile);
                 }
+
+            }
 
             return Ok(ready);
         }
@@ -218,7 +220,8 @@ namespace PhotoshopAutomationApi.Controllers
             var records = await _podCollection.GetAllRecordsAsync();
 
             var batches = records
-                .Where(x => string.Equals(x.ProcessingStatus, "ready", StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
                 .Where(x => !x.MockupProcessed)
                 .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
                 .GroupBy(x => new { x.BatchId, x.ProductType })
