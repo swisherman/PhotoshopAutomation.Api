@@ -220,11 +220,17 @@ namespace PhotoshopAutomationApi.Controllers
             var records = await _podCollection.GetAllRecordsAsync();
 
             var batches = records
-                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
-                .Where(x => string.Equals(x.ProcessingStatus, "processing", StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(
+                    x.ProcessingStatus,
+                    "processing",
+                    StringComparison.OrdinalIgnoreCase))
                 .Where(x => !x.MockupProcessed)
                 .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
-                .GroupBy(x => new { x.BatchId, x.ProductType })
+                .GroupBy(x => new
+                {
+                    x.BatchId,
+                    x.ProductType
+                })
                 .Select(g => new BatchSummary
                 {
                     BatchId = g.Key.BatchId,
@@ -246,9 +252,14 @@ namespace PhotoshopAutomationApi.Controllers
                 return BadRequest($"Invalid MongoDB ObjectId: {id}");
             }
 
+            var completedAt = DateTime.UtcNow;
+
             var update = Builders<PodItem>.Update
                 .Set(x => x.MockupProcessed, true)
-                .Set(x => x.LastModified, DateTime.UtcNow);
+                .Set(x => x.ProcessingStatus, "processed")
+                .Set(x => x.MockupProcessedAt, completedAt)
+                .Set(x => x.MockupError, string.Empty)
+                .Set(x => x.LastModified, completedAt);
 
             var updated = await _podCollection.UpdateOneAsync(
                 x => x.Id == objectId,
@@ -256,12 +267,119 @@ namespace PhotoshopAutomationApi.Controllers
             );
 
             if (!updated)
+            {
                 return NotFound();
+            }
 
             return Ok(new
             {
                 Id = id,
-                MockupProcessed = true
+                ProcessingStatus = "processed",
+                MockupProcessed = true,
+                MockupProcessedAt = completedAt
+            });
+        }
+
+        [HttpPost("{id}/mockup-failed")]
+        public async Task<IActionResult> MarkMockupFailed(
+            string id,
+            [FromBody] MockupFailureRequest request)
+        {
+            if (!ObjectId.TryParse(id, out var objectId))
+            {
+                return BadRequest($"Invalid MongoDB ObjectId: {id}");
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.Error))
+            {
+                return BadRequest("An error message is required.");
+            }
+
+            var failedAt = DateTime.UtcNow;
+
+            var update = Builders<PodItem>.Update
+                .Set(x => x.MockupProcessed, false)
+                .Set(x => x.ProcessingStatus, "failed")
+                .Set(x => x.MockupError, request.Error)
+                .Set(x => x.LastModified, failedAt);
+
+            var updated = await _podCollection.UpdateOneAsync(
+                x => x.Id == objectId,
+                update
+            );
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return Ok(new
+            {
+                Id = id,
+                ProcessingStatus = "failed",
+                MockupProcessed = false,
+                MockupError = request.Error
+            });
+        }
+        [HttpPost("batches/{batchId}/retry-failed")]
+        public async Task<IActionResult> RetryFailedBatch(string batchId)
+        {
+            if (string.IsNullOrWhiteSpace(batchId))
+            {
+                return BadRequest("Batch ID is required.");
+            }
+
+            var records = await _podCollection.GetAllRecordsAsync();
+
+            var failedRecords = records
+                .Where(x => string.Equals(
+                    x.BatchId,
+                    batchId,
+                    StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(
+                    x.ProcessingStatus,
+                    "failed",
+                    StringComparison.OrdinalIgnoreCase))
+                .Where(x => !x.MockupProcessed)
+                .ToList();
+
+            if (failedRecords.Count == 0)
+            {
+                return Ok(new
+                {
+                    BatchId = batchId,
+                    RetriedCount = 0,
+                    Message = "No failed records were found."
+                });
+            }
+
+            var retriedAt = DateTime.UtcNow;
+            var retriedCount = 0;
+
+            foreach (var record in failedRecords)
+            {
+                var update = Builders<PodItem>.Update
+                    .Set(x => x.ProcessingStatus, "processing")
+                    .Set(x => x.MockupProcessed, false)
+                    .Set(x => x.MockupProcessedAt, null)
+                    .Set(x => x.MockupError, string.Empty)
+                    .Set(x => x.LastModified, retriedAt);
+
+                var updated = await _podCollection.UpdateOneAsync(
+                    x => x.Id == record.Id,
+                    update
+                );
+
+                if (updated)
+                {
+                    retriedCount++;
+                }
+            }
+
+            return Ok(new
+            {
+                BatchId = batchId,
+                RetriedCount = retriedCount
             });
         }
     }
