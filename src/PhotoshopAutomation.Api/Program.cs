@@ -26,16 +26,33 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUxP", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        var allowedOrigins =
+     builder.Configuration
+         .GetSection("Cors:AllowedOrigins")
+         .Get<string[]>() ?? [];
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowUxp", policy =>
+            {
+                if (allowedOrigins.Length > 0)
+                {
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                }
+            });
+        });
     });
 });
 
 var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseCors("AllowUxP");
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapOpenApi();
+}
 
 
 // Configure the HTTP request pipeline.

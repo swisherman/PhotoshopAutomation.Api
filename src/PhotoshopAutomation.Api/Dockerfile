@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-ARG BUILD_CONFIGURATION=Debug
+ARG BUILD_CONFIGURATION=Release
 
 COPY ["PhotoshopAutomation.Api/src/PhotoshopAutomation.Api/PhotoshopAutomationApi.csproj", "PhotoshopAutomation.Api/src/PhotoshopAutomation.Api/"]
 COPY ["MockupWorkflow.Shared/src/MockupWorkflow.Shared/MockupWorkflow.Shared.csproj", "MockupWorkflow.Shared/src/MockupWorkflow.Shared/"]

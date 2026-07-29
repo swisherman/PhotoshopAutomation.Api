@@ -1,6 +1,14 @@
-@PhotoshopAutomatonApi_HostAddress = http://localhost:5212
+@PhotoshopAutomationApi_HostAddress = http://localhost:5212
 
-GET {{PhotoshopAutomatonApi_HostAddress}}/weatherforecast/
+GET {{PhotoshopAutomationApi_HostAddress}}/records
 Accept: application/json
 
 ###
+
+GET {{PhotoshopAutomationApi_HostAddress}}/records/batches
+Accept: application/json
+
+###
+
+GET {{PhotoshopAutomationApi_HostAddress}}/records/batches/pending
+Accept: application/json
