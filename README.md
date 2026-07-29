@@ -114,6 +114,7 @@ PhotoshopAutomation.Api is responsible for:
 - Providing batch summaries and processing statistics
 
 The Photoshop UXP Plugin retrieves workflow records from PhotoshopAutomation.Api, downloads source assets from PNGAPI, generates production-ready mockups in Adobe Photoshop, uploads completed assets, and reports processing results back to the API. MockupWorkflow.Admin monitors workflow execution while MongoDB serves as the platform's central workflow database.
+
 ---
 
 ## What This Project Demonstrates
@@ -242,6 +243,7 @@ Stores and serves source artwork and generated mockups. The Photoshop UXP Plugin
 ### FolderCreator.Api
 
 Creates the directory structure required for new production batches before they enter the workflow.
+
 ---
 
 ## Roadmap
@@ -269,6 +271,7 @@ Creates the directory structure required for new production batches before they 
 **Status:** Active Development
 
 PhotoshopAutomation.Api serves as the orchestration layer for the Mockup Workflow Platform. Core workflow orchestration, batch processing, and processing state management are complete. Current development is focused on expanding workflow capabilities, diagnostics, and platform integrations.
+
 ---
 
 ## Screenshots
