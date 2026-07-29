@@ -10,6 +10,8 @@ namespace PhotoshopAutomationApi.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
+        [BsonElement("WorkflowStep")]
+        public int WorkflowStep { get; set; }
 
         [BsonElement("ProductType")]
         public string? ProductType { get; set; } = null;

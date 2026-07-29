@@ -220,10 +220,16 @@ namespace PhotoshopAutomationApi.Controllers
             var records = await _podCollection.GetAllRecordsAsync();
 
             var batches = records
-                .Where(x => string.Equals(
-                    x.ProcessingStatus,
-                    "processing",
-                    StringComparison.OrdinalIgnoreCase))
+                .Where(x =>
+    string.Equals(
+        x.ProcessingStatus,
+        "ready",
+        StringComparison.OrdinalIgnoreCase)
+    ||
+    string.Equals(
+        x.ProcessingStatus,
+        "processing",
+        StringComparison.OrdinalIgnoreCase))
                 .Where(x => !x.MockupProcessed)
                 .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
                 .GroupBy(x => new
