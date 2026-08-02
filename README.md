@@ -11,6 +11,20 @@ PhotoshopAutomation.Api is the central orchestration service for the Mockup Work
 
 The API imports production manifests, persists workflow data in MongoDB, tracks batch progress, and provides the services required for automated mockup generation and workflow monitoring across the platform.
 
+## Screenshots
+
+### Swagger Overview
+
+![Swagger Overview](docs/images/swagger-overview.png)
+
+### Import Endpoint
+
+![Import Endpoint](docs/images/import-endpoint.png)
+
+### Batch Management Endpoint
+
+![Batch Endpoint](docs/images/batch-endpoint.png)
+
 ## Features
 
 ### Workflow Orchestration
@@ -274,16 +288,3 @@ PhotoshopAutomation.Api serves as the orchestration layer for the Mockup Workflo
 
 ---
 
-## Screenshots
-
-### Swagger Overview
-
-![Swagger Overview](docs/images/swagger-overview.png)
-
-### Import Endpoint
-
-![Import Endpoint](docs/images/import-endpoint.png)
-
-### Batch Management Endpoint
-
-![Batch Endpoint](docs/images/batch-endpoint.png)
