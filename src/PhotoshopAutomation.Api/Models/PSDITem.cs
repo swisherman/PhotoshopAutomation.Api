@@ -16,6 +16,9 @@ namespace PhotoshopAutomationApi.Models
         [BsonElement("ProductType")]
         public string? ProductType { get; set; } = null;
 
+        [BsonElement("TemplateKey")]
+        public string? TemplateKey { get; set; } = null;
+
         [BsonElement("FilePathName")]
         public string FilePathName { get; set; } = "";
 
