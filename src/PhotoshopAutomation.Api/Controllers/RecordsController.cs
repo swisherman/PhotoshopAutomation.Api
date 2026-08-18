@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MockupWorkflow.Shared.Models;
+using MockupWorkflow.Shared.Services;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using PhotoshopAutomation.Api.Services;
@@ -230,6 +231,12 @@ namespace PhotoshopAutomationApi.Controllers
         x.ProcessingStatus,
         "processing",
         StringComparison.OrdinalIgnoreCase))
+        
+
+
+
+
+
                 .Where(x => !x.MockupProcessed)
                 .Where(x => !string.IsNullOrWhiteSpace(x.BatchId))
                 .GroupBy(x => new
@@ -251,12 +258,13 @@ namespace PhotoshopAutomationApi.Controllers
             return Ok(batches);
         }
         [HttpPost("{id}/mockup-complete")]
-        public async Task<IActionResult> MarkMockupComplete(string id)
+        public async Task<IActionResult> MarkMockupComplete(string id, [FromBody] MockupCompleteRequest request)
         {
             if (!ObjectId.TryParse(id, out var objectId))
             {
                 return BadRequest($"Invalid MongoDB ObjectId: {id}");
             }
+            request ??= new MockupCompleteRequest();
 
             var completedAt = DateTime.UtcNow;
 
@@ -264,9 +272,10 @@ namespace PhotoshopAutomationApi.Controllers
                 .Set(x => x.MockupProcessed, true)
                 .Set(x => x.ProcessingStatus, "processed")
                 .Set(x => x.MockupProcessedAt, completedAt)
+                .Set(x => x.MockupFiles, request.MockupFiles ?? new List<string>())
                 .Set(x => x.MockupError, string.Empty)
                 .Set(x => x.LastModified, completedAt);
-
+                
             var updated = await _podCollection.UpdateOneAsync(
                 x => x.Id == objectId,
                 update
@@ -282,7 +291,8 @@ namespace PhotoshopAutomationApi.Controllers
                 Id = id,
                 ProcessingStatus = "processed",
                 MockupProcessed = true,
-                MockupProcessedAt = completedAt
+                MockupProcessedAt = completedAt,
+                MockupFiles = request.MockupFiles
             });
         }
 
@@ -387,6 +397,45 @@ namespace PhotoshopAutomationApi.Controllers
                 BatchId = batchId,
                 RetriedCount = retriedCount
             });
+        }
+        [HttpGet("batches/{batchId}/mockup-results")]
+        public async Task<IActionResult> GetMockupResults(
+    string batchId)
+        {
+            if (string.IsNullOrWhiteSpace(batchId))
+            {
+                return BadRequest("Batch ID is required.");
+            }
+
+            var records =
+                await _podCollection.GetAllRecordsAsync();
+
+            var batchRecords =
+                records
+                    .Where(x => string.Equals(
+                        x.BatchId,
+                        batchId,
+                        StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            if (batchRecords.Count == 0)
+            {
+                return NotFound(
+                    $"No records were found for batch: {batchId}");
+            }
+
+            var exporter =
+                new MockupResultExporter();
+
+            var results =
+                batchRecords
+                    .Where(x =>
+                        !string.IsNullOrWhiteSpace(
+                            x.SourceItemId))
+                    .Select(exporter.Build)
+                    .ToList();
+
+            return Ok(results);
         }
     }
 }
